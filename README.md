@@ -4,7 +4,7 @@ Platform-level security and performance testing for HawkerFlow.
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `DAST` | nightly 02:00 SGT, manual | authorization attacks (`dast/authz`) + ZAP API scan of each service |
+| `DAST` | manual | authorization attacks (`dast/authz`) + ZAP API scan of each service |
 | `Load test` | manual (pick `smoke`, `step`, `spike`, `soak`) | k6 against the deployed stack, then CloudWatch metrics → `scaling.png` + `summary.md` |
 
 ## Configuration

@@ -3,7 +3,7 @@
 #      anonymous access? (dast/authz/test_authz.py)
 #   2. OWASP ZAP API scan of each service, driven by its OpenAPI spec.
 #
-# Runs nightly and on demand. Each service's own pipeline also runs ZAP
+# Runs on demand only (workflow_dispatch). Each service's own pipeline also runs ZAP
 # right after it deploys (service-repo ci-cd.yml, job `dast`).
 #
 # Repository variables:
