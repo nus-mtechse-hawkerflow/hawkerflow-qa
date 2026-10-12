@@ -1,0 +1,105 @@
+# Run a k6 load profile against the deployed stack, then pull the CloudWatch
+# metrics for exactly that window and chart them. One click -> report evidence.
+#
+# Repository variables:  API_BASE_URL, ORDER_QUEUE_URL, LOADTEST_STALL_IDS,
+#   ECS_CLUSTER, ECS_SERVICE_ORDER, ECS_SERVICE_HAWKER, ECS_SERVICE_CUSTOMER,
+#   ECS_SERVICE_ANALYTICS, ALB_DIMENSION (app/<name>/<id>), ORDER_QUEUE_NAME, RDS_INSTANCE
+# Repository secret:     AWS_METRICS_ROLE (OIDC role with cloudwatch:GetMetricData only)
+
+name: Load test
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "k6 profile"
+        type: choice
+        options: [smoke, step, spike, soak]
+        default: smoke
+      hold:
+        description: "Plateau length per step (step profile)"
+        default: "5m"
+      note:
+        description: "Label for this run (e.g. 'max=4 tasks, CPU 60%')"
+        default: ""
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  K6_VERSION: v1.3.0
+  AWS_REGION: ap-southeast-1
+
+jobs:
+  load:
+    name: k6 ${{ inputs.profile }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          curl -fsSL "https://github.com/grafana/k6/releases/download/${K6_VERSION}/k6-${K6_VERSION}-linux-amd64.tar.gz" | tar -xz
+          sudo install "k6-${K6_VERSION}-linux-amd64/k6" /usr/local/bin/k6
+          k6 version
+
+      - name: Run k6
+        id: k6
+        continue-on-error: true   # a threshold breach is a result, not a reason to skip the metrics
+        shell: bash               # explicit bash = pipefail, so k6's exit code survives `| tee`
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+          ORDER_QUEUE_URL: ${{ vars.ORDER_QUEUE_URL }}
+          STALL_IDS: ${{ vars.LOADTEST_STALL_IDS }}
+          PROFILE: ${{ inputs.profile }}
+          HOLD: ${{ inputs.hold }}
+        run: |
+          mkdir -p reports
+          # 2 minutes of lead-in so the charts show the idle baseline
+          echo "START=$(date -u -d '-2 min' +%Y-%m-%dT%H:%M:%S+00:00)" >> "$GITHUB_ENV"
+          k6 run loadtest/hawkerflow.js --summary-export=reports/k6-summary.json 2>&1 | tee reports/k6-output.txt
+
+      - name: Wait for scale-in and metric lag
+        run: |
+          sleep 300
+          echo "END=$(date -u +%Y-%m-%dT%H:%M:%S+00:00)" >> "$GITHUB_ENV"
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_METRICS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Collect CloudWatch evidence
+        run: |
+          pip install boto3 matplotlib
+          python loadtest/collect_metrics.py \
+            --start "$START" --end "$END" \
+            --cluster "${{ vars.ECS_CLUSTER }}" \
+            --service "order=${{ vars.ECS_SERVICE_ORDER }}" \
+            --service "hawker=${{ vars.ECS_SERVICE_HAWKER }}" \
+            --service "customer=${{ vars.ECS_SERVICE_CUSTOMER }}" \
+            --service "analytics=${{ vars.ECS_SERVICE_ANALYTICS }}" \
+            --alb "${{ vars.ALB_DIMENSION }}" \
+            --queue "${{ vars.ORDER_QUEUE_NAME }}" \
+            --db "${{ vars.RDS_INSTANCE }}" \
+            --title "HawkerFlow ${{ inputs.profile }} test ${{ inputs.note }}" \
+            --out reports
+          cat reports/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: loadtest-${{ inputs.profile }}-${{ github.run_number }}
+          path: reports/
+
+      - name: Fail if k6 thresholds were breached
+        if: steps.k6.outcome == 'failure'
+        run: |
+          echo "::warning::k6 thresholds breached; see k6-output.txt. Evidence was still collected."
+          exit 1
