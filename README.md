@@ -2,6 +2,8 @@
 
 Platform-level security and performance testing for HawkerFlow.
 
+New to the load tests? Start with **[docs/LOAD_TESTING_GUIDE.md](docs/LOAD_TESTING_GUIDE.md)**: concepts, current setup, findings so far, and the test and tuning strategy.
+
 | Workflow | Trigger | What it does |
 |---|---|---|
 | `DAST` | manual | authorization attacks (`dast/authz`) + ZAP API scan of each service |
