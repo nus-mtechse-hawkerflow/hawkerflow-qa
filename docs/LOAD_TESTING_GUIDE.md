@@ -65,7 +65,7 @@ Our rules (Terraform PR #1, applied 17 Oct):
 - While paused (`pause.sh`), min = max = 0, so scaling can't start tasks on a paused stack.
 
 ### 3.2 API Gateway throttling: the token bucket
-- Each route has a bucket of tokens. **Burst** is the bucket size; **rate** is how fast it refills.
+- A bucket of tokens: **burst** is the bucket size; **rate** is how fast it refills. **Run 0 showed it limits the whole API combined** (~50 req/s across all routes), not each route separately as first assumed.
 - Every request takes 1 token. Empty bucket → **`429 Too Many Requests`**, returned by the gateway; the request never reaches ECS.
 - Idle → bucket full → a sudden spike up to the burst size passes. Sustained load above the rate drains it, and then only `rate` req/s pass; the rest get 429.
 - Was **50 req/s, burst 100**. PR #2 raises it to **500 / 1000** (variables `api_throttling_rate_limit`, `api_throttling_burst_limit`).
@@ -151,7 +151,23 @@ Throughput doesn't grow linearly forever. The USL describes why:
 - **The gateway limit (50 req/s) would have cut off the 100/200 steps**: requests rejected before reaching ECS. Found by reading the Terraform before running.
 - **The scaling targets were never measured**: kit placeholders.
 
-**Run 0 (`step`, 5 m holds, gateway at 50):** *(results pending, 17 Oct 19:31 UTC)*
+**Run 0 (`step`, 5 m holds, gateway at 50), 17 Oct 19:31 UTC** ([evidence](../evidence/INDEX.md)):
+
+| Offered | Achieved (successful) | Rejected at the gateway |
+|---|---|---|
+| 25 | 26 req/s | 0% |
+| 50 | 40 req/s | 19% |
+| 100 | 46 req/s | 54% |
+| 200 | 48 req/s | 76% |
+
+- **The gateway caps the whole API at ~50 req/s.** Load balancer requests flatten at ~2,200/min (~37 req/s) from the 50 step while offered load keeps doubling; plus ~13 order posts/s straight to SQS ≈ 50.
+- **With the old limit, the platform couldn't reliably serve the proposal's own lunch peak** (~40 req/s + order polling): 19% rejected at the 50 step. Raising the limit (Terraform PR #2) is a capacity fix, not just a test convenience.
+- **Auto-scaling worked under the cap:**
+  - **order** exceeded its 60% CPU target already at the **25 step** (~67–70%) and scaled to 2 tasks at minute 10 (CPU then ~40%): CPU-driven. One order task saturates at ~7.5 orders/s plus polls.
+  - **hawker** scaled to 2 at minute 15, triggered by requests per task (CPU peaked ~50%).
+  - The order queue backlog stayed tiny (max 8, oldest 2 s), so the backlog rule never triggered.
+- **Servers stayed healthy:** load balancer p95 ~12 ms (peaks 117 ms at scale-out, ~87 ms at the 200 step); RDS ≤ 12% CPU, ≤ 8 connections; 8,932 orders on stall 2, 0 timed out, end-to-end p95 1.07 s.
+- **Ignore the USL fit for this run:** "peak 44 req/s" is the gateway's limit, not the services' capacity.
 
 ---
 
@@ -160,7 +176,7 @@ Throughput doesn't grow linearly forever. The USL describes why:
 | # | Run | Purpose | Status |
 |---|---|---|---|
 | 0 | `smoke` | Chain works | ✅ 17 Oct |
-| 1 | **Run 0**: `step`, gateway 50 | Show the gateway is the bottleneck: 429s at 100/200, load balancer requests flatten while offered load rises; whatever scales below 50 | ⏳ running |
+| 1 | **Run 0**: `step`, gateway 50 | Show the gateway is the bottleneck: 429s at 100/200, load balancer requests flatten while offered load rises; whatever scales below 50 | ✅ 17 Oct: gateway caps the API at ~50 req/s; order and hawker scaled to 2 |
 | 2 | Apply PR #2 (gateway 500) | Remove the bottleneck | PR open |
 | 3 | **Run 1**: `step`, gateway 500 | **Baseline**: the services' real behaviour, where latency rises, the knee, USL fit | – |
 | 4 | **Tune** (Terraform PR + apply) | Set targets from run 1 (rules below) | – |
