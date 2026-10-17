@@ -1,7 +1,9 @@
 # Platform-wide DAST against the deployed dev stack.
 #   1. Authorization checks: does the platform stop cross-tenant and
 #      anonymous access? (dast/authz/test_authz.py)
-#   2. OWASP ZAP API scan of each service, driven by its OpenAPI spec.
+#   2. OWASP ZAP active scan of each service's GET endpoints, driven by its
+#      OpenAPI spec. No endpoint requires auth yet (AISS-06), so fuzzing
+#      POST/PUT/PATCH on the live stack would write junk records.
 #
 # Runs on demand only (workflow_dispatch). Each service's own pipeline also runs ZAP
 # right after it deploys (service-repo ci-cd.yml, job `dast`).
@@ -62,10 +64,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Scan
         run: |
-          mkdir -p zap && cp dast/zap-rules.tsv zap/rules.tsv && chmod -R 777 zap
+          mkdir -p zap && cp dast/zap-rules.tsv zap/rules.tsv
           target="$API_BASE_URL/${{ matrix.service }}"
+          curl -fsS "$target/openapi.json" \
+            | jq '.paths |= (with_entries(.value |= with_entries(select(.key == "get" or .key == "parameters"))) | with_entries(select(.value | has("get"))))' \
+            > zap/openapi-get.json
+          echo "Endpoints in scope:"; jq -r '.paths | keys[]' zap/openapi-get.json
+          chmod -R 777 zap
           docker run --rm -v "$PWD/zap:/zap/wrk:rw" "$ZAP_IMAGE" zap-api-scan.py \
-            -t "$target/openapi.json" -f openapi -O "$target" \
+            -t openapi-get.json -f openapi -O "$target" \
             -c rules.tsv \
             -r report.html -J report.json -w report.md \
             || code=$?
