@@ -194,7 +194,7 @@ All Terraform settings are in `hawkerflow-terraform/variables.tf`; changing them
 - **No releases (main → release merges) during a load test**: deploys restart tasks and distort the charts.
 - **No Terraform apply during a load test.**
 - Load tests only order from **stall 2**; never point them at stall 1 (the demo stall).
-- After every run, download the results: `bash evidence/fetch_evidence.sh` in the project folder (outside this repo) saves them to `evidence/loadtest/`.
+- After every run, download the results: `bash evidence/fetch_evidence.sh` (from this repo's root) saves them to [`evidence/`](../evidence/INDEX.md); commit and push them.
 
 ---
 
@@ -204,7 +204,7 @@ All Terraform settings are in `hawkerflow-terraform/variables.tf`; changing them
 |---|---|
 | Run page → **Summary** tab | `summary.md`, and for `step` the per-step table + USL fit |
 | Run page → **Artifacts** → `loadtest-<profile>-<n>` | `scaling.png`, `summary.md`, `metrics.csv`, `k6-summary.json`, `k6-output.txt`, (`usl.md`, `usl.png`) |
-| **`evidence/loadtest/`** (project folder on Yui Hao's machine, not in this repo) | All of the above per run, plus `run.md`; index in `evidence/INDEX.md` |
+| **[`evidence/`](../evidence/INDEX.md)** in this repo | All of the above per run, plus `run.md`; index in `evidence/INDEX.md` |
 
 GitHub deletes artifacts after 90 days; the `evidence/` copy is the one to use for the report.
 

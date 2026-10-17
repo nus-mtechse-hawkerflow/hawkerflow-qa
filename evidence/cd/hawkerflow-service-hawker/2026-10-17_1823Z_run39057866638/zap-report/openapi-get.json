@@ -1,0 +1,232 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hawkerflow Service Hawker",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/v1/hawker/stalls": {
+      "get": {
+        "summary": "Get Stalls",
+        "operationId": "get_stalls_v1_hawker_stalls_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/hawker/me/stall/{hawker_sub}": {
+      "get": {
+        "summary": "Get My Stall",
+        "operationId": "get_my_stall_v1_hawker_me_stall__hawker_sub__get",
+        "parameters": [
+          {
+            "name": "hawker_sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Hawker Sub"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HawkerDetails": {
+        "properties": {
+          "stall_name": {
+            "type": "string",
+            "title": "Stall Name"
+          },
+          "stall_number": {
+            "type": "string",
+            "title": "Stall Number"
+          },
+          "stall_description": {
+            "type": "string",
+            "title": "Stall Description"
+          },
+          "stall_location": {
+            "type": "string",
+            "title": "Stall Location"
+          },
+          "stall_menu": {
+            "items": {
+              "$ref": "#/components/schemas/StallMenu"
+            },
+            "type": "array",
+            "title": "Stall Menu"
+          },
+          "stall_owner": {
+            "$ref": "#/components/schemas/StallOwner"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stall_name",
+          "stall_number",
+          "stall_description",
+          "stall_location",
+          "stall_menu",
+          "stall_owner"
+        ],
+        "title": "HawkerDetails"
+      },
+      "StallMenu": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "price",
+          "description"
+        ],
+        "title": "StallMenu"
+      },
+      "StallOwner": {
+        "properties": {
+          "stall_owner_sub": {
+            "type": "string",
+            "title": "Stall Owner Sub"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stall_owner_sub",
+          "name",
+          "phone",
+          "email"
+        ],
+        "title": "StallOwner"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "/hawker"
+    }
+  ]
+}

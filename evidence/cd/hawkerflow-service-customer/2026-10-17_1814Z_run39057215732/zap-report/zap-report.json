@@ -1,0 +1,1703 @@
+{
+	"@programName": "ZAP",
+	"@version": "2.17.0",
+	"@generated": "Sat, 17 Oct 2026 18:25:16",
+	"created": "2026-10-17T18:25:16.670492735Z",
+	"insights":[
+		{
+			"level": "Low",
+			"reason": "Warning",
+			"site": "",
+			"key": "insight.log.warn",
+			"description": "ZAP warnings logged - see the zap.log file for details",
+			"statistic": "10"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "",
+			"key": "insight.network.failure",
+			"description": "Percentage of network failures",
+			"statistic": "2"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+			"key": "insight.code.2xx",
+			"description": "Percentage of responses with status code 2xx",
+			"statistic": "8"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+			"key": "insight.code.4xx",
+			"description": "Percentage of responses with status code 4xx",
+			"statistic": "91"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+			"key": "insight.endpoint.ctype.application/json",
+			"description": "Percentage of endpoints with content type application/json",
+			"statistic": "100"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+			"key": "insight.endpoint.method.GET",
+			"description": "Percentage of endpoints with method GET",
+			"statistic": "84"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+			"key": "insight.endpoint.method.POST",
+			"description": "Percentage of endpoints with method POST",
+			"statistic": "15"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+			"key": "insight.endpoint.total",
+			"description": "Count of total endpoints",
+			"statistic": "132"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+			"key": "insight.response.slow",
+			"description": "Percentage of slow responses",
+			"statistic": "100"
+		}
+	],
+	"site":[ 
+		{
+			"@name": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+			"@host": "pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+			"@port": "443",
+			"@ssl": "true",
+			"alerts": [ 
+				{
+					"pluginid": "90004",
+					"alertRef": "90004-1",
+					"alert": "Cross-Origin-Resource-Policy Header Missing or Invalid",
+					"name": "Cross-Origin-Resource-Policy Header Missing or Invalid",
+					"riskcode": "1",
+					"confidence": "2",
+					"riskdesc": "Low (Medium)",
+					"desc": "<p>Cross-Origin-Resource-Policy header is an opt-in header designed to counter side-channels attacks like Spectre. Resource should be specifically set as shareable amongst different origins.</p>",
+					"instances":[ 
+						{
+							"id": "16",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/health",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/health",
+							"method": "GET",
+							"param": "Cross-Origin-Resource-Policy",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						},
+						{
+							"id": "4",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/cust_sub",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user\/cust_sub",
+							"method": "GET",
+							"param": "Cross-Origin-Resource-Policy",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						}
+					],
+					"count": "2",
+					"systemic": false,
+					"solution": "<p>Ensure that the application/web server sets the Cross-Origin-Resource-Policy header appropriately, and that it sets the Cross-Origin-Resource-Policy header to 'same-origin' for all web pages.</p><p>'same-site' is considered as less secured and should be avoided.</p><p>If resources must be shared, set the header to 'cross-origin'.</p><p>If possible, ensure that the end user uses a standards-compliant and modern web browser that supports the Cross-Origin-Resource-Policy header (https://caniuse.com/mdn-http_headers_cross-origin-resource-policy).</p>",
+					"otherinfo": "",
+					"reference": "<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy</p>",
+					"cweid": "693",
+					"wascid": "14",
+					"sourceid": "7"
+				},
+				{
+					"pluginid": "10035",
+					"alertRef": "10035-1",
+					"alert": "Strict-Transport-Security Header Not Set",
+					"name": "Strict-Transport-Security Header Not Set",
+					"riskcode": "1",
+					"confidence": "3",
+					"riskdesc": "Low (High)",
+					"desc": "<p>HTTP Strict Transport Security (HSTS) is a web security policy mechanism whereby a web server declares that complying user agents (such as a web browser) are to interact with it using only secure HTTPS connections (i.e. HTTP layered over TLS/SSL). HSTS is an IETF standards track protocol and is specified in RFC 6797.</p>",
+					"instances":[ 
+						{
+							"id": "13",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/health",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/health",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						},
+						{
+							"id": "1",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/cust_sub",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user\/cust_sub",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						}
+					],
+					"count": "2",
+					"systemic": false,
+					"solution": "<p>Ensure that your web server, application server, load balancer, etc. is configured to enforce Strict-Transport-Security.</p>",
+					"otherinfo": "",
+					"reference": "<p>https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html</p><p>https://owasp.org/www-community/Security_Headers</p><p>https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security</p><p>https://caniuse.com/stricttransportsecurity</p><p>https://datatracker.ietf.org/doc/html/rfc6797</p>",
+					"cweid": "319",
+					"wascid": "15",
+					"sourceid": "7"
+				},
+				{
+					"pluginid": "100001",
+					"alertRef": "100001",
+					"alert": "Unexpected Content-Type was returned",
+					"name": "Unexpected Content-Type was returned",
+					"riskcode": "1",
+					"confidence": "3",
+					"riskdesc": "Low (High)",
+					"desc": "<p>A Content-Type of text/html was returned by the server.</p><p>This is not one of the types expected to be returned by an API.</p><p>Raised by the 'Alert on Unexpected Content Types' script</p>",
+					"instances":[ 
+						{
+							"id": "156",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com?aaa=bbb",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com (aaa)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "text/html",
+							"otherinfo": ""
+						},
+						{
+							"id": "154",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com?class.module.classLoader.DefaultAssertionStatus=nonsense",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com (class.module.classLoader.DefaultAssertio...)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "text/html",
+							"otherinfo": ""
+						}
+					],
+					"count": "2",
+					"systemic": false,
+					"solution": "",
+					"otherinfo": "",
+					"reference": "",
+					"cweid": "-1",
+					"wascid": "-1",
+					"sourceid": "168"
+				},
+				{
+					"pluginid": "10021",
+					"alertRef": "10021",
+					"alert": "X-Content-Type-Options Header Missing",
+					"name": "X-Content-Type-Options Header Missing",
+					"riskcode": "1",
+					"confidence": "2",
+					"riskdesc": "Low (Medium)",
+					"desc": "<p>The Anti-MIME-Sniffing header X-Content-Type-Options was not set to 'nosniff'. This allows older versions of Internet Explorer and Chrome to perform MIME-sniffing on the response body, potentially causing the response body to be interpreted and displayed as a content type other than the declared content type. Current (early 2014) and legacy versions of Firefox will use the declared content type (if one is set), rather than performing MIME-sniffing.</p>",
+					"instances":[ 
+						{
+							"id": "14",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/health",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/health",
+							"method": "GET",
+							"param": "x-content-type-options",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": "This issue still applies to error type pages (401, 403, 500, etc.) as those pages are often still affected by injection issues, in which case there is still concern for browsers sniffing pages away from their actual content type.\nAt \"High\" threshold this scan rule will not alert on client or server error responses."
+						},
+						{
+							"id": "2",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/cust_sub",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user\/cust_sub",
+							"method": "GET",
+							"param": "x-content-type-options",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": "This issue still applies to error type pages (401, 403, 500, etc.) as those pages are often still affected by injection issues, in which case there is still concern for browsers sniffing pages away from their actual content type.\nAt \"High\" threshold this scan rule will not alert on client or server error responses."
+						}
+					],
+					"count": "2",
+					"systemic": false,
+					"solution": "<p>Ensure that the application/web server sets the Content-Type header appropriately, and that it sets the X-Content-Type-Options header to 'nosniff' for all web pages.</p><p>If possible, ensure that the end user uses a standards-compliant and modern web browser that does not perform MIME-sniffing at all, or that can be directed by the web application/web server to not perform MIME-sniffing.</p>",
+					"otherinfo": "<p>This issue still applies to error type pages (401, 403, 500, etc.) as those pages are often still affected by injection issues, in which case there is still concern for browsers sniffing pages away from their actual content type.</p><p>At \"High\" threshold this scan rule will not alert on client or server error responses.</p>",
+					"reference": "<p>https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/compatibility/gg622941(v=vs.85)</p><p>https://owasp.org/www-community/Security_Headers</p>",
+					"cweid": "693",
+					"wascid": "15",
+					"sourceid": "7"
+				},
+				{
+					"pluginid": "100000",
+					"alertRef": "100000-1",
+					"alert": "A Client Error response code was returned by the server",
+					"name": "A Client Error response code was returned by the server",
+					"riskcode": "0",
+					"confidence": "3",
+					"riskdesc": "Informational (High)",
+					"desc": "<p>A response code of 404 was returned by the server.</p><p>This may indicate that the application is failing to handle unexpected input correctly.</p><p>Raised by the 'Alert on HTTP Response Code Error' script</p>",
+					"instances":[ 
+						{
+							"id": "9",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "155",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com?aaa=bbb",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com (aaa)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "152",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com?class.module.classLoader.DefaultAssertionStatus=nonsense",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com (class.module.classLoader.DefaultAssertio...)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "122",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "124",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/?name=abc",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/ (name)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "317",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.DS_Store",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.DS_Store",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "346",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/._darcs",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/._darcs",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "345",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.bzr",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.bzr",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "279",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.env",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.env",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "302",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.git/config",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.git\/config",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "344",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.hg",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.hg",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "270",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.htaccess",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.htaccess",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "296",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.idea/WebServers.xml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.idea\/WebServers.xml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "318",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.php_cs.cache",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.php_cs.cache",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "329",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.ssh/id_dsa",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.ssh\/id_dsa",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "328",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.ssh/id_rsa",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.ssh\/id_rsa",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "303",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.svn/entries",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.svn\/entries",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "304",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.svn/wc.db",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.svn\/wc.db",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "290",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/.zap3552922782416125163",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/.zap3552922782416125163",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "5",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/5136717597667873720",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/5136717597667873720",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "347",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/BitKeeper",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/BitKeeper",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "332",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/CHANGELOG.txt",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/CHANGELOG.txt",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "305",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/CVS/root",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/CVS\/root",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "319",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/DEADJOE",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/DEADJOE",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "314",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/FileZilla.xml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/FileZilla.xml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "29",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/WEB-INF/applicationContext.xml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/WEB-INF\/applicationContext.xml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "27",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/WEB-INF/web.xml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/WEB-INF\/web.xml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "311",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/WS_FTP.INI",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/WS_FTP.INI",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "309",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/WS_FTP.ini",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/WS_FTP.ini",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "316",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/WinSCP.ini",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/WinSCP.ini",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "343",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/_framework/blazor.boot.json",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/_framework\/blazor.boot.json",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "342",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/_wpeprivate/config.json",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/_wpeprivate\/config.json",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "292",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/actuator/health",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/actuator\/health",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "330",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/adminer.php",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/adminer.php",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "452",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/api-docs",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/api-docs",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "321",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/app/etc/local.xml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/app\/etc\/local.xml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "334",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/composer.json",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/composer.json",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "335",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/composer.lock",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/composer.lock",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "203",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/computeMetadata/v1/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/computeMetadata\/v1\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "300",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/config/database.yml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/config\/database.yml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "298",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/config/databases.yml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/config\/databases.yml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "307",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/core",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/core",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "10",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "157",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer?class.module.classLoader.DefaultAssertionStatus=nonsense",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer (class.module.classLoader.DefaultAssertio...)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "143",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer?name=abc",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer (name)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "231",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "281",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/.env",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/.env",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "272",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/.htaccess",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/.htaccess",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "6",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/4617225895771921654",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/4617225895771921654",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "263",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/trace.axd",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/trace.axd",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "11",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "164",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1?class.module.classLoader.DefaultAssertionStatus=nonsense",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1 (class.module.classLoader.DefaultAssertio...)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "128",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1?name=abc",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1 (name)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "232",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "284",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/.env",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/.env",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "275",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/.htaccess",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/.htaccess",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "7",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/6015757669803541511",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/6015757669803541511",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "17",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "161",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer?class.module.classLoader.DefaultAssertionStatus=nonsense",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer (class.module.classLoader.DefaultAssertio...)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "137",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer?name=abc",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer (name)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "234",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "286",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/.env",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/.env",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "277",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/.htaccess",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/.htaccess",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "8",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/9147417464153839500",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/9147417464153839500",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "268",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/trace.axd",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/trace.axd",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "18",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "166",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user?class.module.classLoader.DefaultAssertionStatus=nonsense",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user (class.module.classLoader.DefaultAssertio...)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "132",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user?name=abc",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user (name)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "236",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "266",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/trace.axd",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/trace.axd",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "453",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/docs/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/docs\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "259",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/elmah.axd",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/elmah.axd",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "123",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/favicon.ico",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/favicon.ico",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "312",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/filezilla.xml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/filezilla.xml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "340",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/i.php",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/i.php",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "327",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/id_dsa",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/id_dsa",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "326",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/id_rsa",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/id_rsa",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "339",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/info.php",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/info.php",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "325",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/key.pem",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/key.pem",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "200",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/latest/meta-data/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/latest\/meta-data\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "293",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/lfm.php",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/lfm.php",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "214",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/metadata/instance",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/metadata\/instance",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "215",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/metadata/v1",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/metadata\/v1",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "324",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/myserver.key",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/myserver.key",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "207",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/opc/v1/instance/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/opc\/v1\/instance\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "210",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/opc/v2/instance/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/opc\/v2\/instance\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "450",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/openapi.json",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/openapi.json",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "457",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/openapi.yaml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/openapi.yaml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "216",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/openstack/latest/meta_data.json",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/openstack\/latest\/meta_data.json",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "338",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/phpinfo.php",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/phpinfo.php",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "323",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/privatekey.key",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/privatekey.key",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "337",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/server-info",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/server-info",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "306",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/server-status",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/server-status",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "322",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/server.key",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/server.key",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "308",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/sftp-config.json",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/sftp-config.json",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "313",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/sitemanager.xml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/sitemanager.xml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "333",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/sites/default/files/.ht.sqlite",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/sites\/default\/files\/.ht.sqlite",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "320",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/sites/default/private/files/backup_migrate/scheduled/test.txt",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/sites\/default\/private\/files\/backup_migrate\/scheduled\/test.txt",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "454",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/swagger",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/swagger",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "445",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/swagger-ui/",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/swagger-ui\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "456",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/swagger-ui/index.html",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/swagger-ui\/index.html",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "449",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/swagger.json",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/swagger.json",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "458",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/swagger.yaml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/swagger.yaml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "459",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/swagger/ui/index.html",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/swagger\/ui\/index.html",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "341",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/test.php",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/test.php",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "261",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/trace.axd",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/trace.axd",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "455",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/v2/api-docs",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/v2\/api-docs",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "447",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/v3/api-docs",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/v3\/api-docs",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "331",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/vb_test.php",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/vb_test.php",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "336",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/vim_settings.xml",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/vim_settings.xml",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "315",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/winscp.ini",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/winscp.ini",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "310",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/ws_ftp.ini",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/ws_ftp.ini",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "288",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/zap3690409873054957933",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/zap3690409873054957933",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "163",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com ()(class.module.classLoader.DefaultAssertio...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "172",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com ()(multipart:1,0)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "39",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/ (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('cmd.exe \/C echo splvtdc8d80a...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "41",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/ (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('echo splvtdc8d80ax9w9w7za',$...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "159",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer ()(class.module.classLoader.DefaultAssertio...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "42",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('cmd.exe \/C echo splvtdc8d80a...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "43",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('echo splvtdc8d80ax9w9w7za',$...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "167",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/health",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/health ()(class.module.classLoader.DefaultAssertio...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "45",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/health?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/health (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('cmd.exe \/C echo splvtdc8d80a...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "48",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/health?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/health (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('echo splvtdc8d80ax9w9w7za',$...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "168",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1 ()(class.module.classLoader.DefaultAssertio...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "47",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1 (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('cmd.exe \/C echo splvtdc8d80a...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "51",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1 (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('echo splvtdc8d80ax9w9w7za',$...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "165",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer ()(class.module.classLoader.DefaultAssertio...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "49",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('cmd.exe \/C echo splvtdc8d80a...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "53",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('echo splvtdc8d80ax9w9w7za',$...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "169",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user ()(class.module.classLoader.DefaultAssertio...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "52",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('cmd.exe \/C echo splvtdc8d80a...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "56",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('echo splvtdc8d80ax9w9w7za',$...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "170",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/cust_sub",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user\/cust_sub ()(class.module.classLoader.DefaultAssertio...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "54",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/cust_sub?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user\/cust_sub (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('cmd.exe \/C echo splvtdc8d80a...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "55",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/cust_sub?-d+allow_url_include%3d1+-d+auto_prepend_file%3dphp://input",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user\/cust_sub (-d allow_url_include=1 -d auto_prepend_f...)(<?php exec('echo splvtdc8d80ax9w9w7za',$...)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						}
+					],
+					"count": "135",
+					"systemic": false,
+					"solution": "",
+					"otherinfo": "",
+					"reference": "",
+					"cweid": "388",
+					"wascid": "20",
+					"sourceid": "19"
+				},
+				{
+					"pluginid": "10015",
+					"alertRef": "10015",
+					"alert": "Re-examine Cache-control Directives",
+					"name": "Re-examine Cache-control Directives",
+					"riskcode": "0",
+					"confidence": "1",
+					"riskdesc": "Informational (Low)",
+					"desc": "<p>The cache-control header has not been set properly or is missing, allowing the browser and proxies to cache content. For static assets like css, js, or image files this might be intended, however, the resources should be reviewed to ensure that no sensitive content will be cached.</p>",
+					"instances":[ 
+						{
+							"id": "12",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/health",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/health",
+							"method": "GET",
+							"param": "cache-control",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						},
+						{
+							"id": "0",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/cust_sub",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user\/cust_sub",
+							"method": "GET",
+							"param": "cache-control",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						}
+					],
+					"count": "2",
+					"systemic": false,
+					"solution": "<p>For secure content, ensure the cache-control HTTP header is set with \"no-cache, no-store, must-revalidate\". If an asset should be cached consider setting the directives \"public, max-age, immutable\".</p>",
+					"otherinfo": "",
+					"reference": "<p>https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#web-content-caching</p><p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control</p><p>https://grayduck.mn/2021/09/13/cache-control-recommendations/</p>",
+					"cweid": "525",
+					"wascid": "13",
+					"sourceid": "7"
+				},
+				{
+					"pluginid": "10049",
+					"alertRef": "10049-3",
+					"alert": "Storable and Cacheable Content",
+					"name": "Storable and Cacheable Content",
+					"riskcode": "0",
+					"confidence": "2",
+					"riskdesc": "Informational (Medium)",
+					"desc": "<p>The response contents are storable by caching components such as proxy servers, and may be retrieved directly from the cache, rather than from the origin server by the caching servers, in response to similar requests from other users. If the response data is sensitive, personal or user-specific, this may result in sensitive information being leaked. In some cases, this may even result in a user gaining complete control of the session of another user, depending on the configuration of the caching components in use in their environment. This is primarily an issue where \"shared\" caching servers such as \"proxy\" caches are configured on the local network. This configuration is typically found in corporate or educational environments, for instance.</p>",
+					"instances":[ 
+						{
+							"id": "15",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/health",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/health",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": "In the absence of an explicitly specified caching lifetime directive in the response, a liberal lifetime heuristic of 1 year was assumed. This is permitted by rfc7234."
+						},
+						{
+							"id": "3",
+							"uri": "https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/cust_sub",
+							"nodeName": "https:\/\/pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com\/customer\/v1\/customer\/user\/cust_sub",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": "In the absence of an explicitly specified caching lifetime directive in the response, a liberal lifetime heuristic of 1 year was assumed. This is permitted by rfc7234."
+						}
+					],
+					"count": "2",
+					"systemic": false,
+					"solution": "<p>Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user:</p><p>Cache-Control: no-cache, no-store, must-revalidate, private</p><p>Pragma: no-cache</p><p>Expires: 0</p><p>This configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.</p>",
+					"otherinfo": "<p>In the absence of an explicitly specified caching lifetime directive in the response, a liberal lifetime heuristic of 1 year was assumed. This is permitted by rfc7234.</p>",
+					"reference": "<p>https://datatracker.ietf.org/doc/html/rfc7234</p><p>https://datatracker.ietf.org/doc/html/rfc7231</p><p>https://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html</p>",
+					"cweid": "524",
+					"wascid": "13",
+					"sourceid": "7"
+				}
+			]
+		}
+	],
+	"sequences":[
+	]
+
+}

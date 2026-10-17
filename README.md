@@ -4,6 +4,8 @@ Platform-level security and performance testing for HawkerFlow.
 
 New to the load tests? Start with **[docs/LOAD_TESTING_GUIDE.md](docs/LOAD_TESTING_GUIDE.md)**: concepts, current setup, findings so far, and the test and tuning strategy.
 
+Test and deploy results for the report (load tests, DAST, release CI/CD runs: charts, ZAP reports, SBOMs) are in **[evidence/](evidence/INDEX.md)**. Refresh with `bash evidence/fetch_evidence.sh`.
+
 | Workflow | Trigger | What it does |
 |---|---|---|
 | `DAST` | manual | authorization attacks (`dast/authz`) + ZAP API scan of each service |

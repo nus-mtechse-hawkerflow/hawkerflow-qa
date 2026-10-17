@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="11" time="2.245" timestamp="2026-10-17T18:54:02.427610+08:00" hostname="Yuis-MacBook-Air.local"><testcase classname="test_authz" name="test_forged_x_stall_id_cannot_read_another_stalls_orders" time="0.484"><failure message="AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order/v1/order/stalls/1/orders -&gt; 200: {&quot;stall_id&quot;:1,&quot;orders&quot;:[{&quot;stall_order_id&quot;:1,&quot;order_id&quot;:1,&quot;stall_id&quot;:1,&quot;status&quot;:&quot;COMPLETED&quot;,&quot;subtotal&quot;:5.0,&quot;dining_option&quot;:&quot;dine_in&quot;,&quot;created_at&quot;:&quot;2026-10-12 15:37:28&quot;,&quot;items&quot;:[{&quot;dish_id&quot;:1,&quot;quantity&quot;:&#10;assert 200 in {401, 403}&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code">def test_forged_x_stall_id_cannot_read_another_stalls_orders():
+        """A hawker (or anyone) sets X-Stall-ID to a stall they do not own."""
+        resp = client.get(
+            f"{ORDER}/v1/order/stalls/{VICTIM_STALL}/orders",
+            headers={"X-Stall-ID": str(VICTIM_STALL)},
+        )
+&gt;       assert resp.status_code in DENIED, explain(resp)
+E       AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order/v1/order/stalls/1/orders -&gt; 200: {"stall_id":1,"orders":[{"stall_order_id":1,"order_id":1,"stall_id":1,"status":"COMPLETED","subtotal":5.0,"dining_option":"dine_in","created_at":"2026-10-12 15:37:28","items":[{"dish_id":1,"quantity":
+E       assert 200 in {401, 403}
+E        +  where 200 = &lt;Response [200 OK]&gt;.status_code
+
+/Users/yuihaogoh/Projects/NUS/nus-mtechse-hawkerflow/devsecops-kit/hawkerflow-qa/dast/authz/test_authz.py:65: AssertionError</failure></testcase><testcase classname="test_authz" name="test_unsigned_jwt_is_rejected" time="0.161"><failure message="AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order/v1/order/stalls/me/orders -&gt; 200: {&quot;stall_id&quot;:1,&quot;orders&quot;:[{&quot;stall_order_id&quot;:1,&quot;order_id&quot;:1,&quot;stall_id&quot;:1,&quot;status&quot;:&quot;COMPLETED&quot;,&quot;subtotal&quot;:5.0,&quot;dining_option&quot;:&quot;dine_in&quot;,&quot;created_at&quot;:&quot;2026-10-12 15:37:28&quot;,&quot;items&quot;:[{&quot;dish_id&quot;:1,&quot;quantity&quot;:&#10;assert 200 in {401, 403}&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code">def test_unsigned_jwt_is_rejected():
+        """A hand-made token with no signature claims to be the victim stall."""
+        token = forged_jwt({"sub": str(uuid.uuid4()), "custom:stall_id": str(VICTIM_STALL)})
+        resp = client.get(
+            f"{ORDER}/v1/order/stalls/me/orders",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+&gt;       assert resp.status_code in DENIED, explain(resp)
+E       AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order/v1/order/stalls/me/orders -&gt; 200: {"stall_id":1,"orders":[{"stall_order_id":1,"order_id":1,"stall_id":1,"status":"COMPLETED","subtotal":5.0,"dining_option":"dine_in","created_at":"2026-10-12 15:37:28","items":[{"dish_id":1,"quantity":
+E       assert 200 in {401, 403}
+E        +  where 200 = &lt;Response [200 OK]&gt;.status_code
+
+/Users/yuihaogoh/Projects/NUS/nus-mtechse-hawkerflow/devsecops-kit/hawkerflow-qa/dast/authz/test_authz.py:75: AssertionError</failure></testcase><testcase classname="test_authz" name="test_analytics_needs_more_than_a_header" time="0.269"><failure message="AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/analytics/v1/insights/stalls/1/summary -&gt; 503: {&quot;detail&quot;:&quot;Analytics database is unavailable. Please retry.&quot;}&#10;assert 503 in {401, 403}&#10; +  where 503 = &lt;Response [503 Service Unavailable]&gt;.status_code">def test_analytics_needs_more_than_a_header():
+        """Sales figures for any stall, identified only by a header the caller sets."""
+        resp = client.get(
+            f"{ANALYTICS}/v1/insights/stalls/{VICTIM_STALL}/summary",
+            headers={"X-Stall-ID": str(VICTIM_STALL)},
+        )
+&gt;       assert resp.status_code in DENIED, explain(resp)
+E       AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/analytics/v1/insights/stalls/1/summary -&gt; 503: {"detail":"Analytics database is unavailable. Please retry."}
+E       assert 503 in {401, 403}
+E        +  where 503 = &lt;Response [503 Service Unavailable]&gt;.status_code
+
+/Users/yuihaogoh/Projects/NUS/nus-mtechse-hawkerflow/devsecops-kit/hawkerflow-qa/dast/authz/test_authz.py:84: AssertionError</failure></testcase><testcase classname="test_authz" name="test_order_lookup_requires_authentication" time="0.238"><failure message="AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order/v1/order/orders/1 -&gt; 200: {&quot;message&quot;:&quot;Order retrieved&quot;,&quot;order_id&quot;:1,&quot;orders&quot;:[{&quot;stall_id&quot;:1,&quot;dishes&quot;:[{&quot;dish_id&quot;:1,&quot;quantity&quot;:1,&quot;price&quot;:5.0}]}],&quot;total_order_price&quot;:5.0,&quot;order_status&quot;:&quot;COMPLETED&quot;,&quot;order_created_at&quot;:&quot;2026-10-12 &#10;assert 200 in {401, 403}&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code">def test_order_lookup_requires_authentication():
+        """Order IDs are sequential integers, so an open lookup leaks every order."""
+        resp = client.get(f"{ORDER}/v1/order/orders/1")
+&gt;       assert resp.status_code in DENIED, explain(resp)
+E       AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order/v1/order/orders/1 -&gt; 200: {"message":"Order retrieved","order_id":1,"orders":[{"stall_id":1,"dishes":[{"dish_id":1,"quantity":1,"price":5.0}]}],"total_order_price":5.0,"order_status":"COMPLETED","order_created_at":"2026-10-12 
+E       assert 200 in {401, 403}
+E        +  where 200 = &lt;Response [200 OK]&gt;.status_code
+
+/Users/yuihaogoh/Projects/NUS/nus-mtechse-hawkerflow/devsecops-kit/hawkerflow-qa/dast/authz/test_authz.py:92: AssertionError</failure></testcase><testcase classname="test_authz" name="test_order_status_update_requires_authentication" time="0.184"><failure message="AssertionError: PUT https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order/v1/order/orders/update -&gt; 404: {&quot;detail&quot;:&quot;Order 2000000000 not found&quot;}&#10;assert 404 in {401, 403}&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">def test_order_status_update_requires_authentication():
+        """Anonymous status change. A 404 here still means the handler ran."""
+        resp = client.put(
+            f"{ORDER}/v1/order/orders/update",
+            json={"order_id": NONEXISTENT_ORDER_ID, "status": "CANCELLED"},
+        )
+&gt;       assert resp.status_code in DENIED, explain(resp)
+E       AssertionError: PUT https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order/v1/order/orders/update -&gt; 404: {"detail":"Order 2000000000 not found"}
+E       assert 404 in {401, 403}
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+/Users/yuihaogoh/Projects/NUS/nus-mtechse-hawkerflow/devsecops-kit/hawkerflow-qa/dast/authz/test_authz.py:101: AssertionError</failure></testcase><testcase classname="test_authz" name="test_hawker_profile_lookup_requires_authentication" time="0.070"><failure message="AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/hawker/v1/hawker/me/stall/88bb2c2d-b88a-4b01-9081-215388ec3944 -&gt; 500: Internal Server Error&#10;assert 500 in {401, 403}&#10; +  where 500 = &lt;Response [500 Internal Server Error]&gt;.status_code">def test_hawker_profile_lookup_requires_authentication():
+        resp = client.get(f"{HAWKER}/v1/hawker/me/stall/{uuid.uuid4()}")
+&gt;       assert resp.status_code in DENIED, explain(resp)
+E       AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/hawker/v1/hawker/me/stall/88bb2c2d-b88a-4b01-9081-215388ec3944 -&gt; 500: Internal Server Error
+E       assert 500 in {401, 403}
+E        +  where 500 = &lt;Response [500 Internal Server Error]&gt;.status_code
+
+/Users/yuihaogoh/Projects/NUS/nus-mtechse-hawkerflow/devsecops-kit/hawkerflow-qa/dast/authz/test_authz.py:106: AssertionError</failure></testcase><testcase classname="test_authz" name="test_customer_profile_lookup_requires_authentication" time="0.053"><failure message="AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/59eaab4c-44eb-474e-a031-1a622483f9c2 -&gt; 200: {&quot;cust_id&quot;:&quot;59eaab4c-44eb-474e-a031-1a622483f9c2&quot;,&quot;cust_name&quot;:null,&quot;last_login&quot;:null}&#10;assert 200 in {401, 403}&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code">def test_customer_profile_lookup_requires_authentication():
+        resp = client.get(f"{CUSTOMER}/v1/customer/user/{uuid.uuid4()}")
+&gt;       assert resp.status_code in DENIED, explain(resp)
+E       AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer/v1/customer/user/59eaab4c-44eb-474e-a031-1a622483f9c2 -&gt; 200: {"cust_id":"59eaab4c-44eb-474e-a031-1a622483f9c2","cust_name":null,"last_login":null}
+E       assert 200 in {401, 403}
+E        +  where 200 = &lt;Response [200 OK]&gt;.status_code
+
+/Users/yuihaogoh/Projects/NUS/nus-mtechse-hawkerflow/devsecops-kit/hawkerflow-qa/dast/authz/test_authz.py:111: AssertionError</failure></testcase><testcase classname="test_authz" name="test_queue_diagnostics_are_not_public" time="0.083"><failure message="AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order/v1/order/sqs/status -&gt; 200: {&quot;enabled&quot;:true,&quot;is_running&quot;:true,&quot;queue_url&quot;:&quot;https://sqs.ap-southeast-1.amazonaws.com/147010142233/hawkerflow-dev-order-queue&quot;,&quot;region_name&quot;:&quot;ap-southeast-1&quot;,&quot;wait_time_seconds&quot;:5,&quot;messages_processe&#10;assert 200 in ({401, 403} | {404})&#10; +  where 200 = &lt;Response [200 OK]&gt;.status_code">def test_queue_diagnostics_are_not_public():
+        """/sqs/status reveals the worker's queue configuration."""
+        resp = client.get(f"{ORDER}/v1/order/sqs/status")
+&gt;       assert resp.status_code in DENIED | {404}, explain(resp)
+E       AssertionError: GET https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order/v1/order/sqs/status -&gt; 200: {"enabled":true,"is_running":true,"queue_url":"https://sqs.ap-southeast-1.amazonaws.com/147010142233/hawkerflow-dev-order-queue","region_name":"ap-southeast-1","wait_time_seconds":5,"messages_processe
+E       assert 200 in ({401, 403} | {404})
+E        +  where 200 = &lt;Response [200 OK]&gt;.status_code
+
+/Users/yuihaogoh/Projects/NUS/nus-mtechse-hawkerflow/devsecops-kit/hawkerflow-qa/dast/authz/test_authz.py:119: AssertionError</failure></testcase><testcase classname="test_authz" name="test_cors_does_not_trust_arbitrary_origins[https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/order]" time="0.059" /><testcase classname="test_authz" name="test_cors_does_not_trust_arbitrary_origins[https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/hawker]" time="0.192" /><testcase classname="test_authz" name="test_cors_does_not_trust_arbitrary_origins[https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com/customer]" time="0.272" /></testsuite></testsuites>

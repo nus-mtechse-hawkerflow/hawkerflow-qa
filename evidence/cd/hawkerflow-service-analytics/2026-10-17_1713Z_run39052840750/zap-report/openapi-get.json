@@ -1,0 +1,308 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "HawkerFlow Service Analytics",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "description": "Process liveness only.\n\nDeliberately does not connect to the database and reports no\nconfiguration, so it is safe to expose without credentials.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/insights/stalls/{stall_id}/summary": {
+      "get": {
+        "summary": "Stall Day Summary",
+        "description": "Daily order statistics for one stall.\n\nA stall with no orders is a successful zero, not an error: the dashboard\nmust be able to tell \"nothing sold today\" from \"analytics is broken\".",
+        "operationId": "stall_day_summary_v1_insights_stalls__stall_id__summary_get",
+        "parameters": [
+          {
+            "name": "stall_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "title": "Stall Id"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date"
+            }
+          },
+          {
+            "name": "X-Stall-ID",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Stall-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StallDaySummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HourlyBucket": {
+        "properties": {
+          "hour": {
+            "type": "integer",
+            "title": "Hour"
+          },
+          "orderCount": {
+            "type": "integer",
+            "title": "Ordercount"
+          },
+          "completedOrderValue": {
+            "type": "number",
+            "title": "Completedordervalue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hour",
+          "orderCount",
+          "completedOrderValue"
+        ],
+        "title": "HourlyBucket"
+      },
+      "StallDaySummary": {
+        "properties": {
+          "stallId": {
+            "type": "integer",
+            "title": "Stallid"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "default": "Asia/Singapore"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "postgresql"
+          },
+          "totalOrders": {
+            "type": "integer",
+            "title": "Totalorders"
+          },
+          "completedOrders": {
+            "type": "integer",
+            "title": "Completedorders"
+          },
+          "cancelledOrders": {
+            "type": "integer",
+            "title": "Cancelledorders"
+          },
+          "completedOrderValue": {
+            "type": "number",
+            "title": "Completedordervalue"
+          },
+          "averageCompletedOrderValue": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Averagecompletedordervalue"
+          },
+          "topItems": {
+            "items": {
+              "$ref": "#/components/schemas/TopItem"
+            },
+            "type": "array",
+            "title": "Topitems"
+          },
+          "hourlyOrders": {
+            "items": {
+              "$ref": "#/components/schemas/HourlyBucket"
+            },
+            "type": "array",
+            "title": "Hourlyorders"
+          },
+          "unavailableMetrics": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unavailablemetrics",
+            "default": [
+              "paymentBreakdown",
+              "preparationTime",
+              "takeawayFees",
+              "shiftClosure"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "stallId",
+          "date",
+          "totalOrders",
+          "completedOrders",
+          "cancelledOrders",
+          "completedOrderValue",
+          "averageCompletedOrderValue",
+          "topItems",
+          "hourlyOrders"
+        ],
+        "title": "StallDaySummary"
+      },
+      "TopItem": {
+        "properties": {
+          "dishId": {
+            "type": "integer",
+            "title": "Dishid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "completedItemValue": {
+            "type": "number",
+            "title": "Completeditemvalue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dishId",
+          "name",
+          "quantity",
+          "completedItemValue"
+        ],
+        "title": "TopItem"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "/analytics"
+    }
+  ]
+}
