@@ -5,7 +5,7 @@ Platform-level security and performance testing for HawkerFlow.
 | Workflow | Trigger | What it does |
 |---|---|---|
 | `DAST` | manual | authorization attacks (`dast/authz`) + ZAP API scan of each service |
-| `Load test` | manual (pick `smoke`, `step`, `spike`, `soak`) | k6 against the deployed stack, then CloudWatch metrics → `scaling.png` + `summary.md` |
+| `Load test` | manual (pick `smoke`, `step`, `spike`, `soak`) | k6 against the deployed stack, then CloudWatch metrics → `scaling.png` + `summary.md`; for `step`, also a per-step table and USL fit → `usl.md` + `usl.png` |
 
 ## Configuration
 

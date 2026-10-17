@@ -23,6 +23,7 @@
 // CHECKOUT_MODE: queue (default, production path) | direct (POST /v1/order/orders, local runs without SQS)
 
 import http from 'k6/http';
+import exec from 'k6/execution';
 import { check, fail, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
 
@@ -71,6 +72,52 @@ function startRate(share) {
   return Math.max(1, Math.round(PROFILES[PROFILE][0][1] * share * 0.2));
 }
 
+// ---------------------------------------------------------------- plateaus (per-step results)
+// A plateau is a stage that holds the previous stage's rate. Requests made during a
+// plateau are tagged step:<rps> (ramps are tagged step:ramp), so the summary has
+// per-step throughput and latency for usl_fit.py.
+function seconds(duration) {
+  let total = 0;
+  for (const [, n, unit] of String(duration).matchAll(/(\d+(?:\.\d+)?)(h|m|s)/g)) {
+    total += Number(n) * { h: 3600, m: 60, s: 1 }[unit];
+  }
+  return total;
+}
+
+const PLATEAUS = []; // [startS, endS, rps]
+{
+  let t = 0;
+  let prev = null;
+  for (const [duration, rps] of PROFILES[PROFILE]) {
+    const d = seconds(duration);
+    if (rps > 0 && rps === prev) PLATEAUS.push([t, t + d, rps]);
+    t += d;
+    prev = rps;
+  }
+}
+const PLATEAU_RATES = [...new Set(PLATEAUS.map(([, , rps]) => rps))];
+
+function currentStep() {
+  const elapsedS = (Date.now() - exec.scenario.startTime) / 1000;
+  const p = PLATEAUS.find(([start, end]) => elapsedS >= start && elapsedS < end);
+  return p ? String(p[2]) : 'ramp';
+}
+
+// Thresholds that always pass, only so the summary export includes per-step sub-metrics.
+function perStepSubmetrics() {
+  const t = {};
+  for (const rps of PLATEAU_RATES) {
+    for (const name of ['stalls', 'order_enqueue']) {
+      // Successful requests only, so throttled (429) responses don't count as throughput.
+      t[`http_reqs{name:${name},step:${rps},expected_response:true}`] = ['count>=0'];
+      t[`http_req_duration{name:${name},step:${rps},expected_response:true}`] = ['avg>=0'];
+    }
+    t[`http_req_failed{step:${rps}}`] = ['rate>=0'];
+    t[`order_e2e_ms{step:${rps}}`] = ['avg>=0'];
+  }
+  return t;
+}
+
 export const options = {
   scenarios: {
     browse: {
@@ -103,6 +150,7 @@ export const options = {
     order_e2e_ms: ['p(95)<10000'],
     orders_timed_out: ['count<1'],
     checks: ['rate>0.99'],
+    ...perStepSubmetrics(),
   },
   summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
   userAgent: 'hawkerflow-loadtest/1.0',
@@ -135,6 +183,8 @@ export function setup() {
 
   if (!catalogue.length) fail('No stalls with menu items to order from (check STALL_IDS).');
   console.log(`Ordering from ${catalogue.length} stall(s): ${catalogue.map((s) => s.stall_id).join(', ')}`);
+  // Read by usl_fit.py from the k6 output: plateau start/end (s) and rate.
+  console.log(`PLATEAUS: ${JSON.stringify(PLATEAUS)}`);
   return { catalogue };
 }
 
@@ -178,7 +228,7 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 // ---------------------------------------------------------------- scenarios
 export function browse() {
-  const res = http.get(`${HAWKER}/v1/hawker/stalls`, { tags: { name: 'stalls' } });
+  const res = http.get(`${HAWKER}/v1/hawker/stalls`, { tags: { name: 'stalls', step: currentStep() } });
   check(res, {
     'stalls 200': (r) => r.status === 200,
     'stalls has data': (r) => r.status === 200 && Array.isArray(r.json('stalls')),
@@ -187,15 +237,16 @@ export function browse() {
 
 export function checkout(data) {
   const payload = basket(data.catalogue);
+  const step = currentStep();
 
   if (CHECKOUT_MODE === 'direct') {
     const res = http.post(`${ORDER}/v1/order/orders`, JSON.stringify(payload), {
       headers: JSON_HEADERS,
-      tags: { name: 'order_enqueue' },
+      tags: { name: 'order_enqueue', step },
     });
     const ok = check(res, { 'order accepted': (r) => r.status === 200 });
     if (ok) {
-      orderE2E.add(res.timings.duration);
+      orderE2E.add(res.timings.duration, { step });
       ordersCreated.add(1);
     }
     return;
@@ -207,7 +258,7 @@ export function checkout(data) {
   const res = http.post(
     QUEUE_URL,
     JSON.stringify({ event_type: 'ORDER_PLACED', order_ref: orderRef, data: payload }),
-    { headers: JSON_HEADERS, tags: { name: 'order_enqueue' } },
+    { headers: JSON_HEADERS, tags: { name: 'order_enqueue', step } },
   );
   if (!check(res, { 'order accepted by queue': (r) => r.status === 200 })) return;
 
@@ -217,7 +268,7 @@ export function checkout(data) {
     sleep(POLL_INTERVAL_S);
     const poll = http.get(`${QUEUE_URL}/${orderRef}`, { tags: { name: 'order_poll' } });
     if (poll.status === 200 && poll.json('status') === 'CREATED') {
-      orderE2E.add(Date.now() - started);
+      orderE2E.add(Date.now() - started, { step });
       ordersCreated.add(1);
       check(poll, { 'order created': () => true });
       return;

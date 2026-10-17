@@ -92,6 +92,16 @@ jobs:
             --out reports
           cat reports/summary.md >> "$GITHUB_STEP_SUMMARY"
 
+      # Per-step throughput/latency and a Universal Scalability Law fit (headroom
+      # against the 40 req/s workload model). Only the stepped profile has enough
+      # plateaus for a fit. Runs even if the CloudWatch step failed.
+      - name: USL fit
+        if: always() && inputs.profile == 'step' && hashFiles('reports/k6-summary.json') != ''
+        run: |
+          pip install matplotlib
+          python loadtest/usl_fit.py --summary reports/k6-summary.json --k6-log reports/k6-output.txt --out reports
+          cat reports/usl.md >> "$GITHUB_STEP_SUMMARY"
+
       - if: always()
         uses: actions/upload-artifact@v4
         with:
