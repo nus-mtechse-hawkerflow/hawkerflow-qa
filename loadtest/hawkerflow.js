@@ -18,7 +18,11 @@
 //     --summary-export=reports/summary.json
 //
 // PROFILE: smoke | step | spike | soak   (default smoke)
-// HOLD:    plateau length for `step`, e.g. 5m (default 5m; >= 4m lets target tracking react)
+// HOLD:    plateau length for `step` (default 7m). Run 0 showed ~5-6 min from a scaling
+//          threshold breach to a new task serving (~3 min alarm + launch + metric lag);
+//          7 min lets each step show the new task settle.
+// DESIGN_MAX_RPS: steps at or below this offered rate must meet the SLOs (default 50);
+//          higher steps are observation-only (capacity testing: they may degrade).
 // STALL_IDS: comma-separated stall IDs to order from (use dedicated load-test stalls)
 // CHECKOUT_MODE: queue (default, production path) | direct (POST /v1/order/orders, local runs without SQS)
 
@@ -34,7 +38,8 @@ const ORDER = (__ENV.ORDER_URL || BASE + (__ENV.ORDER_PATH || '/order')).replace
 const QUEUE_URL = (__ENV.ORDER_QUEUE_URL || `${ORDER}/v1/order/orders/queue`).replace(/\/$/, '');
 const CHECKOUT_MODE = __ENV.CHECKOUT_MODE || 'queue';
 const PROFILE = __ENV.PROFILE || 'smoke';
-const HOLD = __ENV.HOLD || '5m';
+const HOLD = __ENV.HOLD || '7m';
+const DESIGN_MAX_RPS = Number(__ENV.DESIGN_MAX_RPS || 50);
 const POLL_INTERVAL_S = Number(__ENV.POLL_INTERVAL_S || 0.5);
 const POLL_TIMEOUT_S = Number(__ENV.POLL_TIMEOUT_S || 60);
 const BROWSE_SHARE = 0.7;
@@ -42,6 +47,9 @@ const BROWSE_SHARE = 0.7;
 const orderE2E = new Trend('order_e2e_ms', true);
 const ordersCreated = new Counter('orders_created');
 const ordersTimedOut = new Counter('orders_timed_out');
+// Requests rejected by a rate limit (API Gateway throttling), kept separate from service errors.
+// 429 still counts as a failed request: it is not added to the expected statuses.
+const throttled = new Counter('throttled_429');
 
 // ---------------------------------------------------------------- load profiles
 // Each profile is a list of [duration, total requests/s]; browse/checkout split 70/30.
@@ -56,8 +64,10 @@ const PROFILES = {
     ['1m', 200], [HOLD, 200],
     ['2m', 0],
   ],
-  // Lunch spike: quiet, sudden 10x surge, back to quiet (shows scale-out AND scale-in).
-  spike: [['1m', 20], ['3m', 20], ['30s', 200], ['5m', 200], ['30s', 20], ['6m', 20], ['1m', 0]],
+  // Lunch spike: quiet, sudden 10x surge, back to quiet. The 15-minute surge outlasts the
+  // ~5-6 min scale-out so the recovery is visible; the 10-minute tail shows the queue
+  // backlog draining and scale-in starting.
+  spike: [['1m', 20], ['3m', 20], ['30s', 200], ['15m', 200], ['30s', 20], ['10m', 20], ['1m', 0]],
   // Soak: seed load for 30 minutes (memory leaks, connection-pool exhaustion).
   soak: [['2m', 40], ['30m', 40], ['1m', 0]],
 };
@@ -114,7 +124,54 @@ function perStepSubmetrics() {
     }
     t[`http_req_failed{step:${rps}}`] = ['rate>=0'];
     t[`order_e2e_ms{step:${rps}}`] = ['avg>=0'];
+    t[`http_reqs{step:${rps}}`] = ['count>=0']; // gateway calls incl. polls, all statuses
+    t[`orders_created{step:${rps}}`] = ['count>=0'];
+    t[`throttled_429{step:${rps}}`] = ['count>=0'];
   }
+  return t;
+}
+
+// SLOs (PR1/PR2 section 4.1), scoped per profile. `abortOnFail: false` throughout so a
+// breach is recorded and the run continues to show the whole curve.
+function addThreshold(t, key, expr) {
+  t[key] = [...(t[key] || []), expr];
+}
+
+function sloThresholds(tagSuffix, { e2e = true } = {}) {
+  const s = tagSuffix ? `,${tagSuffix}` : '';
+  const one = tagSuffix ? `{${tagSuffix}}` : '';
+  const t = {
+    [`http_req_duration{name:stalls${s}}`]: ['p(95)<300'],
+    [`http_req_duration{name:order_enqueue${s}}`]: ['p(95)<500'],
+    [`http_req_failed{name:stalls${s}}`]: ['rate<0.01'],
+    [`http_req_failed{name:order_enqueue${s}}`]: ['rate<0.01'],
+    [`orders_timed_out${one}`]: ['count<1'],
+    [`checks${one}`]: ['rate>0.99'],
+  };
+  if (e2e) t[`order_e2e_ms${one}`] = ['p(95)<10000'];
+  return t;
+}
+
+function buildThresholds() {
+  const t = { dropped_iterations: ['count<1'] }; // k6 ran out of VUs => load not offered as configured
+  if (PROFILE === 'step') {
+    // Capacity test: only steps within design load must meet the SLOs; higher steps are
+    // observation-only (their per-step sub-metrics still appear in the summary).
+    for (const rps of PLATEAU_RATES.filter((r) => r <= DESIGN_MAX_RPS)) {
+      for (const [k, v] of Object.entries(sloThresholds(`step:${rps}`))) v.forEach((e) => addThreshold(t, k, e));
+    }
+  } else if (PROFILE === 'spike') {
+    // SQS exists so orders can queue during a surge: end-to-end time is expected to exceed
+    // 10 s at 10x load. The claims are: diners are accepted fast, no order is lost.
+    Object.assign(t, {
+      'http_req_duration{name:order_enqueue}': ['p(95)<500'],
+      'http_req_failed{name:order_enqueue}': ['rate<0.01'],
+      orders_timed_out: ['count<1'],
+    });
+  } else {
+    Object.assign(t, sloThresholds(''));
+  }
+  for (const [k, v] of Object.entries(perStepSubmetrics())) v.forEach((e) => addThreshold(t, k, e));
   return t;
 }
 
@@ -140,18 +197,7 @@ export const options = {
       maxVUs: 1500,
     },
   },
-  // Targets from PR1/PR2 section 4.1. `abortOnFail: false` so a breach is
-  // recorded but the run continues and shows the whole curve.
-  thresholds: {
-    'http_req_duration{name:stalls}': ['p(95)<300'],
-    'http_req_duration{name:order_enqueue}': ['p(95)<500'],
-    'http_req_failed{name:stalls}': ['rate<0.01'],
-    'http_req_failed{name:order_enqueue}': ['rate<0.01'],
-    order_e2e_ms: ['p(95)<10000'],
-    orders_timed_out: ['count<1'],
-    checks: ['rate>0.99'],
-    ...perStepSubmetrics(),
-  },
+  thresholds: buildThresholds(),
   summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
   userAgent: 'hawkerflow-loadtest/1.0',
 };
@@ -227,15 +273,31 @@ function basket(catalogue) {
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 // ---------------------------------------------------------------- scenarios
+// Read by usl_fit.py to line plateaus up with CloudWatch (server-side latency).
+let startLogged = false;
+function logScenarioStart() {
+  if (startLogged || exec.vu.idInTest !== 1) return;
+  startLogged = true;
+  console.log(`SCENARIO_START: ${new Date(exec.scenario.startTime).toISOString()}`);
+}
+
+function countThrottle(res, name, step) {
+  if (res.status === 429) throttled.add(1, { name, step });
+}
+
 export function browse() {
-  const res = http.get(`${HAWKER}/v1/hawker/stalls`, { tags: { name: 'stalls', step: currentStep() } });
+  logScenarioStart();
+  const step = currentStep();
+  const res = http.get(`${HAWKER}/v1/hawker/stalls`, { tags: { name: 'stalls', step } });
+  countThrottle(res, 'stalls', step);
   check(res, {
     'stalls 200': (r) => r.status === 200,
     'stalls has data': (r) => r.status === 200 && Array.isArray(r.json('stalls')),
-  });
+  }, { step });
 }
 
 export function checkout(data) {
+  logScenarioStart();
   const payload = basket(data.catalogue);
   const step = currentStep();
 
@@ -244,10 +306,11 @@ export function checkout(data) {
       headers: JSON_HEADERS,
       tags: { name: 'order_enqueue', step },
     });
-    const ok = check(res, { 'order accepted': (r) => r.status === 200 });
+    countThrottle(res, 'order_enqueue', step);
+    const ok = check(res, { 'order accepted': (r) => r.status === 200 }, { step });
     if (ok) {
       orderE2E.add(res.timings.duration, { step });
-      ordersCreated.add(1);
+      ordersCreated.add(1, { step });
     }
     return;
   }
@@ -260,24 +323,34 @@ export function checkout(data) {
     JSON.stringify({ event_type: 'ORDER_PLACED', order_ref: orderRef, data: payload }),
     { headers: JSON_HEADERS, tags: { name: 'order_enqueue', step } },
   );
-  if (!check(res, { 'order accepted by queue': (r) => r.status === 200 })) return;
+  countThrottle(res, 'order_enqueue', step);
+  if (!check(res, { 'order accepted by queue': (r) => r.status === 200 }, { step })) return;
 
   // Poll until the SQS worker has written the order (202 PENDING -> 200 CREATED).
+  // Orders are counted against the step the checkout started in; polls against the
+  // step they ran in (for gateway calls per step).
   const deadline = started + POLL_TIMEOUT_S * 1000;
   while (Date.now() < deadline) {
     sleep(POLL_INTERVAL_S);
-    const poll = http.get(`${QUEUE_URL}/${orderRef}`, { tags: { name: 'order_poll' } });
+    const pollStep = currentStep();
+    const poll = http.get(`${QUEUE_URL}/${orderRef}`, { tags: { name: 'order_poll', step: pollStep } });
     if (poll.status === 200 && poll.json('status') === 'CREATED') {
       orderE2E.add(Date.now() - started, { step });
-      ordersCreated.add(1);
-      check(poll, { 'order created': () => true });
+      ordersCreated.add(1, { step });
+      check(poll, { 'order created': () => true }, { step });
       return;
     }
+    if (poll.status === 429) {
+      // Throttled poll: the order may already exist, so keep polling rather than
+      // failing the order (that would drop its end-to-end time and inflate failures).
+      countThrottle(poll, 'order_poll', pollStep);
+      continue;
+    }
     if (poll.status !== 202) {
-      check(poll, { 'order poll ok': () => false });
+      check(poll, { 'order poll ok': () => false }, { step });
       return;
     }
   }
-  ordersTimedOut.add(1);
-  check(null, { 'order created': () => false });
+  ordersTimedOut.add(1, { step });
+  check(null, { 'order created': () => false }, { step });
 }
