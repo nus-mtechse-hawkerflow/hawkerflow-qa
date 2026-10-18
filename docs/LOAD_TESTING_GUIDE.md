@@ -188,7 +188,9 @@ Throughput doesn't grow linearly forever. The USL describes why:
 - **The queue design held:** order *placement* p95 stayed ~237 ms at every step, even during the backlog. Diners are accepted instantly while order creation absorbs the surge and catches up.
 - **Database not a bottleneck:** peak 45% CPU, 15 connections.
 - **USL fit is weak (R² 0.57):** latency explodes once queues build, which the model handles poorly in an open-model test. Capacity statement instead: **SLOs met to ≥ 50 req/s (1.25× peak); throughput keeps up to ~190 req/s (4.7×) with degraded latency beyond ~50–100.**
-- **Tuning candidates for run 2:** bigger order tasks (0.5 vCPU) and/or a lower order CPU target; hawker max 3 → 5; diner app poll backoff (app code); higher browse `maxVUs` in k6.
+- **Why order scaled slowly (from the Application Auto Scaling activity history):** CPU policy 1 → 2 at minute 13.5, 2 → 4 at 21.5; backlog policy 4 → 5 at 24.5, after the backlog peaked. Causes: ~3–4 min alarm delay (3 × 1-min datapoints + metric lag), 1–2 min task start-up, CPU capped at 100% so target tracking under-sized each step (2 × 100/60 → 4), and the backlog metric arriving too late to lead. Check with `aws application-autoscaling describe-scaling-activities --service-namespace ecs --resource-id service/hawkerflow-dev-cluster/hawkerflow-dev-order`.
+- **Scale-in is slow:** tasks stayed up ~33 min after the load ended, then dropped one every 4 min. The `spike` profile's 10-min tail is too short to show scale-in; use a ~40-min tail, or report scale-in from the activity history.
+- **Tuning candidates for run 2:** headroom before jumps: bigger order tasks (0.5 vCPU), a lower order CPU target (50%), a minimum of 2 order tasks at peak; hawker max 3 → 5; diner app poll back-off (app code); higher browse `maxVUs` in k6. Lowering the backlog target would not speed things up (its delay is metric lag).
 
 ---
 

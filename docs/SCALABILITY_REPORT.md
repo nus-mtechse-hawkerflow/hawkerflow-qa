@@ -65,6 +65,33 @@ API Gateway was throttled at **50 requests/s for the whole API**. Requests reach
 ![Figure 2](../evidence/figures/fig2_order_bottleneck.png)
 *Figure 2. Run 1, order service: tasks, CPU against its 60% scaling target, and the order queue backlog.*
 
+### Why order scaled slowly at 100 requests/s
+
+The scaling history (AWS Application Auto Scaling activities) shows what happened:
+
+| Time (UTC) | Minute of test | Policy | Change |
+|---|---|---|---|
+| 09:49:00 | 13.5 | CPU | 1 → 2 tasks (CPU had been ~70% since minute ~9.5) |
+| 09:57:00 | 21.5 | CPU | 2 → 4 tasks (CPU at 100% since minute ~19) |
+| 09:59:57 | 24.5 | Queue backlog | 4 → 5 tasks, ~2 min **after** the backlog peaked |
+| 10:42–10:50 | 33–41 min after load ended | CPU (low) | 5 → 4 → 3 → 2, one task every 4 min |
+
+Causes:
+1. **Alarm delay.** Target tracking acts after 3 consecutive 1-minute datapoints above target, and ECS metrics arrive ~1 minute late: ~3–4 minutes before any decision.
+2. **Task start-up.** A new Fargate task needs 1–2 minutes (container start, then two load balancer health checks 30 s apart) before it serves traffic.
+3. **CPU saturates at 100%, hiding real demand.** Target tracking sizes a step as tasks × (CPU ÷ target): at most 2 × 100/60 ≈ 3.3 → 4 tasks, even though demand needed more. Scaling therefore took two delayed rounds.
+4. **The backlog policy is a late safety net, not a fast trigger.** It combines the SQS queue metric with the task count from Container Insights; both arrive late, so it fired only after the peak.
+5. **The load rose faster than the ~5–6 minute scaling loop.** The step doubled load within one minute; any faster rise builds a queue unless spare capacity exists beforehand.
+6. **Polling amplified the overload:** ~5 polls per order while orders waited.
+
+Scale-in is deliberately much slower: extra tasks ran for ~33 minutes after load ended, then were removed one every 4 minutes.
+
+**Ways to address it** (all add headroom *before* a jump; lowering the backlog target would not help, as its delay comes from the metrics, not the threshold):
+- **Larger order tasks (0.5 vCPU):** each task stays further below 100% CPU, so one scaling step can see and meet the real demand.
+- **Lower CPU target (e.g. 50%):** scales out earlier.
+- **Minimum of 2 order tasks** (or scheduled scaling) ahead of predictable lunch peaks.
+- **Diner app poll back-off** (1 → 2 → 4 s): less work per waiting order.
+
 ## 5. Capacity and headroom
 
 - **SLOs are met at 50 requests/s (1.25× the 40 req/s peak)** with automatic scale-out.
@@ -77,7 +104,7 @@ API Gateway was throttled at **50 requests/s for the whole API**. Requests reach
 
 1. **Check configuration before testing.** The gateway limit capped the API below its requirement; reading the Terraform predicted it, and run 0 confirmed it at low cost.
 2. **Measure before tuning.** The scaling targets were template defaults; run 1 shows where they work (≤ 50 req/s) and where they are too slow (step to 100).
-3. **Scale-out takes ~6 minutes.** Load that rises faster than that builds a queue; earlier triggers or larger tasks are needed for sharp increases.
+3. **Scale-out takes ~6 minutes, scale-in ~35+.** Load that rises faster than that builds a queue; CPU saturating at 100% makes target tracking under-size its steps, and the backlog policy reacts too late to help. Headroom (larger tasks, a lower target, a higher minimum) is what works for sharp increases.
 4. **Polling multiplies load under backlog** (~5 polls per order at 100 req/s). Client back-off would reduce it.
 5. **Validate the test itself.** The test harness was corrected to keep polling on 429, fail on dropped iterations, use server-side latency for concurrency, and exclude throttled steps from the fit.
 
@@ -90,7 +117,7 @@ API Gateway was throttled at **50 requests/s for the whole API**. Requests reach
 
 ## 8. Next steps
 
-1. **Faster order scaling:** 0.5 vCPU order tasks and/or a lower CPU target (e.g. 50%).
+1. **Faster order scaling:** 0.5 vCPU order tasks and/or a lower CPU target (e.g. 50%); a minimum of 2 order tasks (or scheduled scaling) before lunch.
 2. **Hawker maximum 3 → 5**, keeping database connections in view (15 of ~80–110 used).
 3. **Diner app poll back-off** (1 → 2 → 4 s).
 4. **Run 2** with these changes to verify the 100 req/s step meets its SLOs; finer steps between 100 and 200 to locate the knee.
@@ -125,11 +152,12 @@ API Gateway was throttled at **50 requests/s for the whole API**. Requests reach
 
 ### Slide 4: Beyond the peak, the queue absorbs the surge
 - 100 req/s: order scaled too slowly → backlog 738, end-to-end 52 s; drained once 4–5 tasks ran
+- Why: ~3–4 min alarm delay + 1–2 min task start; CPU capped at 100% → under-sized steps (1 → 2 → 4 → 5); backlog policy fired after the peak
 - Order **placement stayed ~237 ms** throughout: diners never waited to be accepted
 - 200 req/s: hawker at its task maximum, browse 14 s
 - *Figure 2*
 
-*Notes:* "This is the queue design working: under 2.5× load, accepting an order stayed instant while creating it caught up once capacity arrived."
+*Notes:* "This is the queue design working: under 2.5× load, accepting an order stayed instant while creating it caught up once capacity arrived. Scaling was slow for three reasons: alarms need about three minutes of evidence, new tasks take one to two minutes to start, and because CPU can't exceed 100%, the policy under-sized its first step, so it took two rounds. The fix is headroom before the jump: bigger tasks or a lower target."
 
 ### Slide 5: Capacity, lessons, next steps
 - SLOs met at ≥ 1.25× peak; throughput sustained to ~190 req/s (4.7×) with degraded latency
