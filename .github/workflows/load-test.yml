@@ -17,8 +17,8 @@ on:
         options: [smoke, step, spike, soak]
         default: smoke
       hold:
-        description: "Plateau length per step (step profile)"
-        default: "5m"
+        description: "Plateau length per step (step profile). 7m lets each step show scale-out settle (~5-6 min)"
+        default: "7m"
       note:
         description: "Label for this run (e.g. 'max=4 tasks, CPU 60%')"
         default: ""
@@ -99,7 +99,7 @@ jobs:
         if: always() && inputs.profile == 'step' && hashFiles('reports/k6-summary.json') != ''
         run: |
           pip install matplotlib
-          python loadtest/usl_fit.py --summary reports/k6-summary.json --k6-log reports/k6-output.txt --out reports
+          python loadtest/usl_fit.py --summary reports/k6-summary.json --k6-log reports/k6-output.txt --metrics reports/metrics.csv --out reports
           cat reports/usl.md >> "$GITHUB_STEP_SUMMARY"
 
       - if: always()

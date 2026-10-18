@@ -89,6 +89,9 @@ def build_queries(args) -> list[dict]:
         lb = {"LoadBalancer": args.alb}
         add("alb_requests", "all", "AWS/ApplicationELB", "RequestCount", lb, "Sum")
         add("alb_p95", "all", "AWS/ApplicationELB", "TargetResponseTime", lb, "p95")
+        # Mean server-side latency (not plotted): usl_fit.py uses it for concurrency N = X * R,
+        # because k6's latency is mostly network between the runner and the stack.
+        add("alb_avg", "all", "AWS/ApplicationELB", "TargetResponseTime", lb, "Average")
 
     if args.queue:
         q = {"QueueName": args.queue}
@@ -225,20 +228,43 @@ def plot(rows: list[dict], path: Path, title: str) -> None:
     plt.close(fig)
 
 
-def summarise(rows: list[dict], path: Path) -> None:
+def summarise(rows: list[dict], path: Path, cpu_target: float = 60) -> None:
     data = group(rows)
     lines = ["# Scaling evidence summary", ""]
 
+    # Load start: first minute the load balancer carried meaningful traffic (the window
+    # also includes an idle lead-in, which must not count towards scale-out time).
+    load_start = None
+    if "alb_requests" in data:
+        xs, ys = data["alb_requests"]["all"]
+        if ys:
+            load_start = next((x for x, y in zip(xs, ys) if y >= 0.1 * max(ys)), None)
+
+    def minutes(a, b):
+        return f"{(b - a).total_seconds() / 60:.0f}" if a and b else "–"
+
     if "tasks" in data:
-        lines += ["| Service | Tasks at start | Peak tasks | First scale-out (min after start) |", "|---|---|---|---|"]
+        lines += [
+            f"| Service | Tasks at start | Peak tasks | Load start → first scale-out (min) | CPU > {cpu_target:.0f}% → first scale-out (min) |",
+            "|---|---|---|---|---|",
+        ]
         for name, (xs, ys) in data["tasks"].items():
             if not ys:
                 continue
             start = ys[0]
             first = next((x for x, y in zip(xs, ys) if y > start), None)
-            delay = f"{(first - xs[0]).total_seconds() / 60:.0f}" if first else "no scale-out"
-            lines.append(f"| {name} | {start:.0f} | {max(ys):.0f} | {delay} |")
-        lines.append("")
+            if not first:
+                lines.append(f"| {name} | {start:.0f} | {max(ys):.0f} | no scale-out | – |")
+                continue
+            # The breach that triggered it: first CPU datapoint above target before the scale-out.
+            breach = None
+            if name in data.get("ecs_cpu", {}):
+                cx, cy = data["ecs_cpu"][name]
+                breach = next((x for x, y in zip(cx, cy) if y > cpu_target and x <= first), None)
+            lines.append(f"| {name} | {start:.0f} | {max(ys):.0f} | {minutes(load_start, first)} | "
+                         f"{minutes(breach, first) if breach else '– (not CPU-triggered)'} |")
+        lines += ["", "Times are at CloudWatch's 1-minute resolution. A scale-out without a prior CPU breach was "
+                  "triggered by another target (hawker: requests per task; order: queue backlog per task).", ""]
 
     def peak(panel, label, fmt):
         if panel in data:
@@ -269,6 +295,7 @@ def parse_args():
     p.add_argument("--queue", help="SQS queue name (not URL)")
     p.add_argument("--db", help="RDS DB instance identifier")
     p.add_argument("--title", default="HawkerFlow under load")
+    p.add_argument("--cpu-target", type=float, default=60, help="auto-scaling CPU target, for the scale-out timing")
     p.add_argument("--from-csv", type=Path, help="re-plot an earlier metrics.csv without AWS")
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
@@ -286,7 +313,7 @@ def main():
         rows = fetch(args)
         write_csv(rows, args.out / "metrics.csv")
     plot(rows, args.out / "scaling.png", args.title)
-    summarise(rows, args.out / "summary.md")
+    summarise(rows, args.out / "summary.md", args.cpu_target)
     print(f"Wrote {args.out}/scaling.png, summary.md" + ("" if args.from_csv else ", metrics.csv"))
 
 

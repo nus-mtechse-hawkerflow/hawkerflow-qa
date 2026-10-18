@@ -92,18 +92,18 @@ Our rules (Terraform PR #1, applied 17 Oct):
 | Profile | Shape | Question it answers |
 |---|---|---|
 | `smoke` | 5 req/s, 1.5 min | Does the whole chain work at all? (setup check, not a result) |
-| `step` | 25 → 50 → 100 → 200, each held `HOLD` (default 5 min) | Where are the limits? Does scaling keep up? Gives the USL fit |
-| `spike` | 20 → sudden 200 → 20 | Can it handle a lunch rush, and scale back in afterwards? |
+| `step` | 25 → 50 → 100 → 200, each held `HOLD` (default 7 min) | Where are the limits? Does scaling keep up? Gives the USL fit. SLOs apply only to steps ≤ 50 (design load); 100 and 200 are observation-only |
+| `spike` | 20 → sudden 200 for 15 min → 20 for 10 min | Can it handle a lunch rush, and scale back in afterwards? (No end-to-end SLO: orders are meant to queue during a surge) |
 | `soak` | 40 req/s for 30 min | Is it stable over time (leaks, connection build-up, CPU credits)? |
 
 **Why the step values:** built around the 40 req/s workload model: 25 (below peak, baseline) · 50 (just above peak, where scaling should start) · 100 (2.5×, headroom; named in the proposal) · 200 (5×, stress, to find the knee). Doubling covers a wide range in few runs and gives the USL fit well-spread points.
 
-**Why 5-minute holds:** auto-scaling needs 3–5 minutes to react (3.1). Shorter holds end before scaling shows.
+**Why 7-minute holds:** run 0 measured ~5–6 minutes from a CPU breach to the new task serving. 5-minute holds ended just as scaling arrived; 7 minutes shows it settle.
 
 ### 3.6 Concurrency and Little's law
 - **Concurrency N** = requests in flight at once. **Little's law:** N = X × R (throughput × response time).
 - e.g. 50 req/s × 0.1 s = 5 requests in flight.
-- `usl_fit.py` computes N for each plateau from the measured X and R.
+- `usl_fit.py` computes N for each plateau from the measured X and the **server** response time R (the load balancer's average), not k6's latency, which is mostly network.
 
 ### 3.7 Universal Scalability Law (USL)
 Throughput doesn't grow linearly forever. The USL describes why:
@@ -114,6 +114,7 @@ Throughput doesn't grow linearly forever. The USL describes why:
 - **κ (kappa), coherency:** components having to coordinate with each other. Causes throughput to **fall** past a peak (retrograde).
 - From the fit: **peak throughput** (if κ > 0) or **ceiling** (if only σ), and **headroom = peak ÷ 40 req/s**.
 - Read with care: k6 runs an open model while the USL is defined for concurrency; we use Little's law to get N. If every step keeps up (no saturation), the fit says "near-linear, no ceiling yet". That just means "test higher".
+- **Throttled plateaus (any 429) are excluded from the fit**: they measure the gateway, not the services.
 
 ### 3.8 Client latency vs server latency
 - k6's latency includes the **network** from GitHub's runners (usually in the US) to Singapore: ~200 ms on top.
@@ -130,7 +131,8 @@ Throughput doesn't grow linearly forever. The USL describes why:
 | Target API | `https://pczpxdtbbh.execute-api.ap-southeast-1.amazonaws.com` |
 | Orders go to | **Stall 2, "ZZ Load Test Stall (do not order)"** (`LOADTEST_STALL_IDS=2`); auto-cancel after 15 min |
 | Workload mix | 70% browse, 30% checkout via the SQS queue path |
-| k6 thresholds | browse p95 < 300 ms, enqueue p95 < 500 ms, errors < 1%, order end-to-end p95 < 10 s, 0 timed-out orders |
+| k6 thresholds | browse p95 < 300 ms, enqueue p95 < 500 ms, errors < 1%, order end-to-end p95 < 10 s, 0 timed-out orders, 0 dropped iterations. `step`: only steps ≤ 50; `spike`: enqueue p95/errors, timed-out and dropped only |
+| Per-step metrics | achieved req/s, **orders/s**, **gateway calls/s** (incl. polls), **429s**, server R, N, p95s, order end-to-end |
 | Metrics collected | tasks, ECS CPU, ALB requests + p95, queue backlog + oldest age, RDS CPU + connections (`scaling.png`) |
 | Per-step results + USL | `usl.md`, `usl.png` (step profile only) |
 | Gateway limit | 50 req/s → **500** once PR #2 is applied |
@@ -185,9 +187,11 @@ Throughput doesn't grow linearly forever. The USL describes why:
 | 7 | *(optional)* `soak` | Stability over 30 min | – |
 
 ### 6.1 How to read a `step` run
-1. **`usl.md` table:** per step, *achieved vs offered* (keeping up?), errors (429s = gateway; 5xx = services), p95, order end-to-end.
-2. **`scaling.png`:** tasks over time vs load; CPU per service; ALB requests (flattening while offered load rises = something upstream is limiting); queue backlog; RDS CPU and connections.
-3. **The knee:** the first step where achieved < offered, latency jumps, or errors appear.
+1. **`usl.md` table:** per step, *achieved vs offered* (keeping up?), orders/s, gateway calls/s, 429s (gateway) vs other errors (services), server R, p95, order end-to-end.
+2. **`summary.md`:** scale-out time from load start and from the CPU breach (run 0: order 6 min from breach).
+3. **`scaling.png`:** tasks over time vs load; CPU per service; ALB requests (flattening while offered load rises = something upstream is limiting); queue backlog; RDS CPU and connections.
+4. **The knee:** the first step where achieved < offered, latency jumps, or errors appear.
+5. **Validity:** `dropped_iterations` must be 0 (else k6 didn't offer the load), and for capacity runs there must be **no 429s** (else the gateway was still in the way).
 
 ### 6.2 Tuning rules (after run 1)
 
