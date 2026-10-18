@@ -6,6 +6,7 @@ Downloaded from GitHub Actions by `fetch_evidence.sh` (re-run it after every tes
 
 - [`loadtest/2026-10-17_1913Z_smoke_first-smoke-run_run39061510693`](loadtest/2026-10-17_1913Z_smoke_first-smoke-run_run39061510693/run.md) **success**: loadtest-smoke-1/k6-output.txt loadtest-smoke-1/k6-summary.json loadtest-smoke-1/metrics.csv loadtest-smoke-1/scaling.png loadtest-smoke-1/summary.md 
 - [`loadtest/2026-10-17_1931Z_step_run-0-gateway-limit-50-req-s_run39062818294`](loadtest/2026-10-17_1931Z_step_run-0-gateway-limit-50-req-s_run39062818294/run.md) **failure**: loadtest-step-2/k6-output.txt loadtest-step-2/k6-summary.json loadtest-step-2/metrics.csv loadtest-step-2/scaling.png loadtest-step-2/summary.md loadtest-step-2/usl.md loadtest-step-2/usl.png 
+- [`loadtest/2026-10-18_0935Z_step_run-1-gateway-500-max-order-5-hawker-3_run39115915961`](loadtest/2026-10-18_0935Z_step_run-1-gateway-500-max-order-5-hawker-3_run39115915961/run.md) **failure**: loadtest-step-3/k6-output.txt loadtest-step-3/k6-summary.json loadtest-step-3/metrics.csv loadtest-step-3/scaling.png loadtest-step-3/summary.md loadtest-step-3/usl.md loadtest-step-3/usl.png 
 
 ## dast
 

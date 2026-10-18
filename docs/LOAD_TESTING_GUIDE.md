@@ -171,6 +171,25 @@ Throughput doesn't grow linearly forever. The USL describes why:
 - **Servers stayed healthy:** load balancer p95 ~12 ms (peaks 117 ms at scale-out, ~87 ms at the 200 step); RDS ≤ 12% CPU, ≤ 8 connections; 8,932 orders on stall 2, 0 timed out, end-to-end p95 1.07 s.
 - **Ignore the USL fit for this run:** "peak 44 req/s" is the gateway's limit, not the services' capacity.
 
+**Run 1 (`step`, 7 m holds, gateway 500, max order 5 / hawker 3), 18 Oct 09:35 UTC** ([evidence](../evidence/INDEX.md)):
+
+| Step | Achieved / offered | 429s | Order end-to-end p95 | Browse p95 (k6) | Server R (ALB mean) | Tasks |
+|---|---|---|---|---|---|---|
+| 25 | 26 / 25 | 0 | 1.0 s | 236 ms | 6 ms | order 1, hawker 1 |
+| 50 | 50 / 50 | 0 | 1.0 s | 242 ms | 10 ms | → order 2, hawker 2–3 |
+| 100 | 97 / 100 | 0 | **52 s** | 250 ms | 1.5 s | → order 4–5, hawker 3 |
+| 200 | 189 / 200 | 0 | 1.1 s | **14.3 s** | 2.9 s | order 5 (max), hawker 3 (max) |
+
+- **Requirement met:** every SLO passed at 25 and 50 req/s (peak model ~40). The run is red only because of **5,814 dropped iterations at the 200 step** (k6 ran out of browse VUs when hawker slowed).
+- **No 429s:** the gateway is out of the way.
+- **Scaling worked:** hawker 1 → 3, order 1 → 5, each ~6 min after its CPU breach.
+- **Bottleneck at 100: order scaled too slowly.** Order CPU sat at 100% on 2 tasks for ~4 min before tasks 3–5 arrived. Queue backlog peaked at 738 (oldest 72 s), end-to-end p95 52 s, and 410 orders exceeded the 60 s poll limit. Polls amplified the load (240 gateway calls/s for 97/s of useful work). The backlog drained fully once order reached 4–5 tasks.
+- **Bottleneck at 200: hawker at its max of 3** (~90% CPU), browse p95 14 s.
+- **The queue design held:** order *placement* p95 stayed ~237 ms at every step, even during the backlog. Diners are accepted instantly while order creation absorbs the surge and catches up.
+- **Database not a bottleneck:** peak 45% CPU, 15 connections.
+- **USL fit is weak (R² 0.57):** latency explodes once queues build, which the model handles poorly in an open-model test. Capacity statement instead: **SLOs met to ≥ 50 req/s (1.25× peak); throughput keeps up to ~190 req/s (4.7×) with degraded latency beyond ~50–100.**
+- **Tuning candidates for run 2:** bigger order tasks (0.5 vCPU) and/or a lower order CPU target; hawker max 3 → 5; diner app poll backoff (app code); higher browse `maxVUs` in k6.
+
 ---
 
 ## 6. Strategy: measure → find the bottleneck → remove it → measure → tune → verify
@@ -180,7 +199,7 @@ Throughput doesn't grow linearly forever. The USL describes why:
 | 0 | `smoke` | Chain works | ✅ 17 Oct |
 | 1 | **Run 0**: `step`, gateway 50 | Show the gateway is the bottleneck: 429s at 100/200, load balancer requests flatten while offered load rises; whatever scales below 50 | ✅ 17 Oct: gateway caps the API at ~50 req/s; order and hawker scaled to 2 |
 | 2 | Apply PR #2 (gateway 500) | Remove the bottleneck | PR open |
-| 3 | **Run 1**: `step`, gateway 500 | **Baseline**: the services' real behaviour, where latency rises, the knee, USL fit | – |
+| 3 | **Run 1**: `step`, gateway 500 | **Baseline**: the services' real behaviour, where latency rises, the knee, USL fit | ✅ 18 Oct: SLOs met at 25/50; order bottleneck at 100 (slow scale-out, queue backlog), hawker at max at 200 |
 | 4 | **Tune** (Terraform PR + apply) | Set targets from run 1 (rules below) | – |
 | 5 | **Run 2**: `step`, tuned | **Verify**: scaling starts before latency degrades | – |
 | 6 | **`spike`**, tuned | Lunch-rush story: scale-out and scale-in | – |
