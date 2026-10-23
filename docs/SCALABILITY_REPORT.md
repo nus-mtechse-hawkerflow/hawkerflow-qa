@@ -1,6 +1,6 @@
 # Scalability: load testing and auto-scaling
 
-Draft for the project report (Part A) and presentation (Part B). Based on load test runs 0 and 1 (17–18 Oct 2026). Evidence: [`evidence/INDEX.md`](../evidence/INDEX.md). Concepts and method detail: [`LOAD_TESTING_GUIDE.md`](LOAD_TESTING_GUIDE.md).
+Draft for the project report (Part A) and presentation (Part B). Based on load test runs 0, 1 (17–18 Oct 2026) and 2 (23 Oct, with high availability). Evidence: [`evidence/INDEX.md`](../evidence/INDEX.md). Concepts and method detail: [`LOAD_TESTING_GUIDE.md`](LOAD_TESTING_GUIDE.md).
 
 ---
 
@@ -92,15 +92,32 @@ Scale-in is deliberately much slower: extra tasks ran for ~33 minutes after load
 - **Minimum of 2 order tasks** (or scheduled scaling) ahead of predictable lunch peaks.
 - **Diner app poll back-off** (1 → 2 → 4 s): less work per waiting order.
 
-## 5. Capacity and headroom
+## 5. Run 2: re-test with high availability
 
-- **SLOs are met at 50 requests/s (1.25× the 40 req/s peak)** with automatic scale-out.
-- **Throughput is sustained to ~190 requests/s (4.7×)**, with degraded latency beyond 50–100 requests/s: order end-to-end during scale-out, browse at hawker's task maximum.
-- **The throughput limit was not reached** in the tested range.
+After run 1 the team enabled high availability: **minimum 2 tasks per service across 2 availability zones**, a **Multi-AZ database**, and a maximum of 5 tasks for every service. Run 2 repeated the same test.
 
-**USL fit:** σ = 0.146, κ = 0, R² = 0.57 (ceiling ~178 requests/s). The fit is weak and is not used as the headroom figure: once queues build, server latency rises sharply, which the USL handles poorly under an open-model test. Plateaus throttled by the gateway (all of run 0) are excluded from fitting.
+| Offered (req/s) | Achieved | Order end-to-end p95 | Browse p95 (client) | Server latency (mean) | Tasks |
+|---|---|---|---|---|---|
+| **25** | 26 | **0.94 s** | 231 ms | 12 ms | order 2, hawker 2 |
+| **50** | 50 | **0.95 s** | 231 ms | 15 ms | order 2, hawker 2 |
+| 100 | 98 | 55 s | 1.4 s | 1.9 s | order 2 → 5, hawker 2 → 3 |
+| 200 | **200** | 1.2 s | **2.0 s** | 240 ms | order 5, hawker 5 |
 
-## 6. Lessons
+- **The peak needed no scaling:** with two tasks from the start, every SLO held at 25 and 50 requests/s.
+- **The 100 requests/s backlog remained** (peak 971, oldest 74 s, end-to-end p95 55 s). A sudden doubling still needs order to grow to 4–5 tasks, and scale-out still takes minutes. A higher minimum gives headroom at the peak, not speed of scaling.
+- **200 requests/s fully served** (vs 189 in run 1), with browse p95 2.0 s (vs 14.3 s), because hawker could reach 5 tasks.
+- **The database is the next bottleneck:** peak 80% CPU (45% in run 1) and 19 connections, from more browse traffic reaching it, a larger stall list and synchronous Multi-AZ replication. Server latency at 25/50 rose slightly (12–15 ms vs 6–10 ms).
+
+![Run 1 vs run 2](../evidence/figures/slides/s4_order_backlog_run1_vs_run2.png)
+*Figure 3. Orders waiting in queue and order tasks, run 1 (before HA, grey) and run 2 (HA, blue).*
+
+## 6. Capacity and headroom
+
+- **SLOs are met at 50 requests/s (1.25× the 40 req/s peak)**; with HA, without any scaling.
+- **200 requests/s (5×) fully served with HA** (run 2), with slower responses above ~50–100 requests/s.
+- **USL fit (run 2):** σ = 0.075, κ = 0.0003, R² = 0.998: predicted peak **~240 requests/s (~6×)**, consistent with the database reaching 80% CPU at 200 requests/s. Run 1's fit was weak (R² 0.57) and is not used; gateway-throttled plateaus (run 0) are excluded from fitting.
+
+## 7. Lessons
 
 1. **Check configuration before testing.** The gateway limit capped the API below its requirement; reading the Terraform predicted it, and run 0 confirmed it at low cost.
 2. **Measure before tuning.** The scaling targets were template defaults; run 1 shows where they work (≤ 50 req/s) and where they are too slow (step to 100).
@@ -108,20 +125,21 @@ Scale-in is deliberately much slower: extra tasks ran for ~33 minutes after load
 4. **Polling multiplies load under backlog** (~5 polls per order at 100 req/s). Client back-off would reduce it.
 5. **Validate the test itself.** The test harness was corrected to keep polling on 429, fail on dropped iterations, use server-side latency for concurrency, and exclude throttled steps from the fit.
 
-## 7. Limitations
+## 8. Limitations
 
 - Diner-side workload only: the hawker point-of-sale flow, logins, customer and analytics services were not exercised.
 - Client latency includes ~220 ms of network between the GitHub runner and Singapore; server latency is reported separately.
 - One run per configuration. Order CPU at 25 req/s differed between runs (68% in run 0, 43% in run 1); repeats would quantify the variance.
 - Step changes are abrupt compared with a real lunch build-up; the database is a burstable instance (CPU credits) and long tests may behave differently.
 
-## 8. Next steps
+## 9. Next steps
 
 1. **Faster order scaling:** 0.5 vCPU order tasks and/or a lower CPU target (e.g. 50%); a minimum of 2 order tasks (or scheduled scaling) before lunch.
-2. **Hawker maximum 3 → 5**, keeping database connections in view (15 of ~80–110 used).
+2. **Database headroom:** 80% CPU at 200 requests/s in run 2. Shrink per-task connection pools, watch CPU credits (burstable instance), or move to a larger instance before raising task maxima further.
 3. **Diner app poll back-off** (1 → 2 → 4 s).
 4. **Run 2** with these changes to verify the 100 req/s step meets its SLOs; finer steps between 100 and 200 to locate the knee.
 5. **Production gateway limit** set just above proven capacity (e.g. 150 req/s), raised only for test windows.
+6. **Bring the HA settings into Terraform** (min 2 tasks, max 5, Multi-AZ database were applied outside the repo; `multi_az = false` in `modules/rds/main.tf` would undo them on the next apply).
 
 ---
 
@@ -160,7 +178,7 @@ Scale-in is deliberately much slower: extra tasks ran for ~33 minutes after load
 *Notes:* "This is the queue design working: under 2.5× load, accepting an order stayed instant while creating it caught up once capacity arrived. Scaling was slow for three reasons: alarms need about three minutes of evidence, new tasks take one to two minutes to start, and because CPU can't exceed 100%, the policy under-sized its first step, so it took two rounds. The fix is headroom before the jump: bigger tasks or a lower target."
 
 ### Slide 5: Capacity, lessons, next steps
-- SLOs met at ≥ 1.25× peak; throughput sustained to ~190 req/s (4.7×) with degraded latency
+- SLOs met at ≥ 1.25× peak; with HA, 200 req/s (5×) fully served, with degraded latency above ~50–100 req/s
 - Lessons: check configuration first; measure before tuning; scale-out takes ~6 min; polling multiplies load
 - Next: larger order tasks / earlier trigger, hawker max 5, client poll back-off, verify with run 2
 
